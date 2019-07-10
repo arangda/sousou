@@ -6,7 +6,7 @@ OPENID_PROVIDERS = [
     { 'name': 'Yahoo', 'url': 'https://me.yahoo.com' },
     { 'name': 'AOL', 'url': 'http://openid.aol.com/<username>' },
     { 'name': 'Flickr', 'url': 'http://www.flickr.com/<username>' },
-    { 'name': 'MyOpenID', 'url': 'https://www.myopenid.com' }]
+    { 'name': 'OpenID', 'url': 'http://arangda.openid.org.cn/' }]
 
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
