@@ -1,0 +1,8 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>An unexpected error has occurred</h1>
+    <p>给您带来不便表示歉意</p>
+    <p><a href="{{url_for('index')}}">Back</a></p>
+{% endblock %}
