@@ -1,31 +1,29 @@
+import sys
+import os
+from werkzeug.utils import secure_filename
 from datetime import datetime
-
+from time import time
 from flask import render_template, flash, redirect, g, url_for, session, request
 from flask_login import login_user, current_user, login_required, logout_user
 
 from app import app, lm, oid, db
-from app.forms import LoginForm, EditForm, PostForm
+from app.forms import LoginForm, EditForm, PostForm,SouForm
 from app.models import User, Post
-from config import POSTS_PER_PAGE
+from config import POSTS_PER_PAGE, ALLOWED_EXTENSIONS, UPLOAD_FOLDER
 
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
-@app.route('/index/<int:page>', methods=['GET', 'POST'])
 @login_required
-def index(page=1):
-    form = PostForm()
+def index():
+    form = SouForm()
     if form.validate_on_submit():
-        post = Post(body=form.post.data, timestamp=datetime.utcnow(), author=g.user)
-        db.session.add(post)
-        db.session.commit()
-        flash('Your post is now live!')
         return redirect(url_for('index'))
-    posts =g.user.followed_posts().paginate(page, POSTS_PER_PAGE,False)
     return render_template('index.html',
                            title='Home',
                            form=form,
-                           posts=posts)
+                           now=int(time())
+                           )
 
 @app.route('/login',methods=['GET','POST'])
 @oid.loginhandler
@@ -49,19 +47,31 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-
-@app.route('/user/<nickname>')
-@app.route('/user/<nickname>/<int:page>')
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+@app.route('/user/<nickname>', methods=['GET', 'POST'])
+@app.route('/user/<nickname>/<int:page>', methods=['GET', 'POST'])
 @login_required
-def user(nickname, page=1):
+def user(nickname):
     user = User.query.filter_by(nickname=nickname).first()
     if user == None:
         flash('User '+nickname + ' not found')
         return redirect(url_for('index'))
-    posts = user.posts.paginate(page,POSTS_PER_PAGE,False)
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            filename = user.nickname+'.'+file.filename.rsplit('.', 1)[1]
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return redirect(url_for('user',nickname=nickname, filename=filename))
+    oldfile = UPLOAD_FOLDER + user.nickname + '.xlsx'
+    import pandas as pd
+    xlsx = pd.ExcelFile(oldfile)
+    df = pd.read_excel(xlsx, 'Sheet1')
     return render_template('user.html',
                            user=user,
-                           posts=posts
+                           tables=[df.to_html(classes='data')],
+                           titles=df.columns.values
                            )
 
 @app.route('/edit', methods=['GET','POST'])
@@ -163,3 +173,21 @@ def internal_error(error):
 def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
+
+
+@app.route('/sousou', methods=['GET', 'POST'])
+@login_required
+def sousou():
+    form = SouForm()
+    soudata = []
+    if form.validate_on_submit():
+        word = form.sou.data
+        from .spider.SouSpider import HandleSou
+        spider = HandleSou()
+        soudata = spider.handle_word_sou(word)
+
+    return render_template('index.html',
+                           title='Home',
+                           form=form,
+                           souo=soudata
+                           )

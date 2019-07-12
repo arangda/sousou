@@ -31,3 +31,7 @@ class EditForm(Form):
 
 class PostForm(Form):
     post = StringField('post', validators=[DataRequired()])
+
+
+class SouForm(Form):
+    sou = StringField('sou', validators=[DataRequired()])
