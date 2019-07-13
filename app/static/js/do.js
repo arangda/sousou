@@ -1,0 +1,9 @@
+$(document).ready(function(){
+    $("#all").click(function(){
+        $.getJSON("/souall",{
+            w:"all"
+        },function(data){
+                console.log(data)
+        })
+    })
+})

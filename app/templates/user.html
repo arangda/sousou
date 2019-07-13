@@ -9,8 +9,10 @@
             <input class="btn btn-default" type=submit value=上传>
         </div>
     </form>
-    {% for table in tables %}
-                {{titles[loop.index]}}
+    <div class="uptable">
+            {% for table in tables %}
                 {{ table|safe }}
-    {% endfor %}
+            {% endfor %}
+    </div>
+
 {% endblock %}

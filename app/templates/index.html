@@ -9,7 +9,8 @@
         <tr>
             <td width="300">输入搜索词:</td>
             <td width="400">{{ form.sou(size = 40, maxlength = 140) }}</td>
-            <td><input  type="submit" value="搜搜"></td>
+            <td><input  name="single" type="submit" value="搜搜"></td>
+            <td><button  id="all" class="btn  btn-primary" type="button">查看所有词</button></td>
             <td>
             {% for error in form.errors.sou %}
             <span style="color: red;">[{{error}}]</span><br>
@@ -19,6 +20,7 @@
         </tr>
     </table>
 </form>
+{{pp}}
 <div>
     <ul>
         {% if souo %}

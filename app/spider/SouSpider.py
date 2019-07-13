@@ -1,9 +1,13 @@
 import json
-import multiprocessing  #引入多进程
+from multiprocessing import Pool  #引入多进程
 import requests
 import re
 import time
 from bs4 import BeautifulSoup
+import numpy as np
+
+from config import UPLOAD_FOLDER
+
 
 class HandleSou(object):
     def __init__(self):
@@ -15,13 +19,18 @@ class HandleSou(object):
         }
         self.sou_dict = {}
 
-    #获取全国所有城市列表的方法
-    def handle_city(self):
-        city_search = re.compile(r'www\.lagou\.com\/.*\/">(.*?)</a>')
-        city_url = 'https://www.lagou.com/jobs/allCity.html'
-        city_result = self.handle_request(method='GET', url=city_url)
-        #self.city_list = city_search.findall(city_result)
-        #lagou.lagou_session.cookies.clear()
+    #获取所有搜索词列表的方法
+    def handle_words(self, nickname):
+        dflist = []
+        oldfile = UPLOAD_FOLDER + nickname + '.xlsx'
+        import pandas as pd
+        xlsx = pd.ExcelFile(oldfile)
+        df = pd.read_excel(xlsx, 'Sheet1')
+        df2 = df.fillna('没有值')
+        cols = df2.values.tolist()
+        from itertools import chain
+        return list(chain.from_iterable(cols))
+
     def handle_word_sou(self,word):
         first_request_url = "http://m.baidu.com/s"
         try:
@@ -47,5 +56,15 @@ class HandleSou(object):
                 response = requests.post(url, headers=self.header, params=info, verify=False)
             response.encoding = 'utf-8'
             return response.text
-
+    def handle_all_sou(self,nickname):
+        rest = []
+        words = self.handle_words(nickname)
+        #p = Pool()
+        for w in words:
+            #p.apply_async(self.handle_word_sou, args=(w,))
+            r = self.handle_word_sou(w)
+            rest.append(r.values())
+        #p.close()
+        #p.join()
+        return rest
 

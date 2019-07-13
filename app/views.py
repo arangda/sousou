@@ -3,7 +3,7 @@ import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from time import time
-from flask import render_template, flash, redirect, g, url_for, session, request
+from flask import render_template, flash, redirect, g, url_for, session, request, jsonify
 from flask_login import login_user, current_user, login_required, logout_user
 
 from app import app, lm, oid, db
@@ -70,6 +70,7 @@ def user(nickname):
     df = pd.read_excel(xlsx, 'Sheet1')
     return render_template('user.html',
                            user=user,
+                           now=int(time()),
                            tables=[df.to_html(classes='data')],
                            titles=df.columns.values
                            )
@@ -180,7 +181,9 @@ def internal_error(error):
 def sousou():
     form = SouForm()
     soudata = []
+    pp = ''
     if form.validate_on_submit():
+
         word = form.sou.data
         from .spider.SouSpider import HandleSou
         spider = HandleSou()
@@ -189,5 +192,17 @@ def sousou():
     return render_template('index.html',
                            title='Home',
                            form=form,
-                           souo=soudata
+                           souo=soudata,
+                           now=int(time())
                            )
+
+@app.route('/souall', methods=['GET','POST'])
+@login_required
+def souall():
+    recv_data = request.args.get('w')
+    from .spider.SouSpider import HandleSou
+    spider = HandleSou()
+    soudata = spider.handle_all_sou(g.user.nickname)
+
+    return jsonify(soudata)
+
