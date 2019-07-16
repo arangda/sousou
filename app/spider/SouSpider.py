@@ -1,5 +1,8 @@
+import asyncio
 import json
 from multiprocessing import Pool  #引入多进程
+
+import aiohttp
 import requests
 import re
 import time
@@ -17,7 +20,7 @@ class HandleSou(object):
         self.header = {
             'User-Agent': 'Mozilla / 5.0(Windows NT 6.1;Win64;x64) AppleWebKit / 537.36(KHTML, likeGecko) Chrome / 75.0.3770.100Safari / 537.36'
         }
-        self.sou_dict = {}
+        self.sou_list = []
 
     #获取所有搜索词列表的方法
     def handle_words(self, nickname):
@@ -31,22 +34,30 @@ class HandleSou(object):
         from itertools import chain
         return list(chain.from_iterable(cols))
 
-    def handle_word_sou(self,word):
+    def handle_word_sou(self,content):
+        sou_list = []
+        soup = BeautifulSoup(content, 'html.parser')
+        res = soup.find_all(class_="ec-tuiguang-color-change")
+        n = 1
+        for i in res:
+            ret = i.find_parent().contents[0].contents[0].get_text()
+            sou_list.append(str(n) + ret)
+            n = n+1
+        return sou_list
+    async def handle_fetch(self,session,word):
+        url = "http://m.baidu.com/s?word=" + word
+        async with session.get(url) as response:
+            return await response.text()
+        '''
+        这是requests爬取
         first_request_url = "http://m.baidu.com/s"
         try:
             kv = {'word': word}
-            r = self.handle_request(method="GET", url=first_request_url, info=kv)
-            soup = BeautifulSoup(r, 'html.parser')
-            res = soup.find_all(class_="ec-tuiguang-color-change")
-            self.sou_dict['搜索词:'] = word
-            n = 1
-            for i in res:
-                ret = i.find_parent().contents[0].contents[0].get_text()
-                self.sou_dict[n] = ret
-                n = n+1
-            return self.sou_dict
+            con = self.handle_request(method="GET", url=first_request_url, info=kv)
+            return con
         except:
             print("爬取失败")
+        '''
     def handle_request(self, method, url, data=None, info=None):
         response = ""
         while True:
@@ -56,15 +67,30 @@ class HandleSou(object):
                 response = requests.post(url, headers=self.header, params=info, verify=False)
             response.encoding = 'utf-8'
             return response.text
-    def handle_all_sou(self,nickname):
+
+    async def main(self,words):
+        tasks = []
+        async with aiohttp.ClientSession() as session:
+            for w in words:
+                tasks.append(self.handle_fetch(session,w))
+            return await asyncio.gather(*tasks)
+
+    def return_result(self,nickname,word):
         rest = []
-        words = self.handle_words(nickname)
-        #p = Pool()
-        for w in words:
-            #p.apply_async(self.handle_word_sou, args=(w,))
-            r = self.handle_word_sou(w)
-            rest.append(r.values())
-        #p.close()
-        #p.join()
+        tb = time.time()
+        if word is None:
+            words = self.handle_words(nickname)
+        else:
+            words = []
+            words.append(word)
+        new_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(new_loop)
+        loop = asyncio.get_event_loop()
+        htmls = loop.run_until_complete(self.main(words))
+        for hm in htmls:
+            gt = self.handle_word_sou(hm)
+            rest.append(gt)
+        te = time.time()
+        rest.append(str(te-tb))
         return rest
 

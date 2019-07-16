@@ -24,13 +24,9 @@
 <div>
     <ul>
         {% if souo %}
-            {% for k,s in souo.items() %}
+            {% for k in souo %}
             <li>
-                {% if k=='搜索词:' %}
-                {{k}}-<strong style="color:red">{{s}}</strong>
-                {% else %}
-                {{k}}-{{s}}
-                {% endif %}
+                {{k}}
             </li>
             {% endfor %}
         {% endif %}

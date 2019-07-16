@@ -181,13 +181,12 @@ def internal_error(error):
 def sousou():
     form = SouForm()
     soudata = []
-    pp = ''
     if form.validate_on_submit():
 
         word = form.sou.data
         from .spider.SouSpider import HandleSou
         spider = HandleSou()
-        soudata = spider.handle_word_sou(word)
+        soudata = spider.return_result(g.user.nickname, word)
 
     return render_template('index.html',
                            title='Home',
@@ -202,7 +201,7 @@ def souall():
     recv_data = request.args.get('w')
     from .spider.SouSpider import HandleSou
     spider = HandleSou()
-    soudata = spider.handle_all_sou(g.user.nickname)
+    soudata = spider.return_result(g.user.nickname,None)
 
     return jsonify(soudata)
 
