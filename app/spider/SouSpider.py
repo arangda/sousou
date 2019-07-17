@@ -20,7 +20,7 @@ class HandleSou(object):
         self.header = {
             'User-Agent': 'Mozilla / 5.0(Windows NT 6.1;Win64;x64) AppleWebKit / 537.36(KHTML, likeGecko) Chrome / 75.0.3770.100Safari / 537.36'
         }
-        self.sou_list = []
+        self.sou_process = [0]
 
     #获取所有搜索词列表的方法
     def handle_words(self, nickname):
@@ -46,7 +46,7 @@ class HandleSou(object):
         return sou_list
     async def handle_fetch(self,session,word):
         url = "http://m.baidu.com/s?word=" + word
-        async with session.get(url) as response:
+        async with session.get(url,ssl=False) as response:
             return await response.text()
         '''
         这是requests爬取
@@ -58,6 +58,7 @@ class HandleSou(object):
         except:
             print("爬取失败")
         '''
+    # requests处理函数
     def handle_request(self, method, url, data=None, info=None):
         response = ""
         while True:
@@ -72,8 +73,17 @@ class HandleSou(object):
         tasks = []
         async with aiohttp.ClientSession() as session:
             for w in words:
-                tasks.append(self.handle_fetch(session,w))
+                #tasks.append(self.handle_fetch(session,w))
+                #加回调函数
+                task = asyncio.ensure_future(self.handle_fetch(session,w))
+                task.add_done_callback(self.get_it)
+                tasks.append(task)
             return await asyncio.gather(*tasks)
+    # task中的回调函数
+    def get_it(self,future):
+        #ret = future.result()
+        #yy = self.handle_word_sou(ret)
+        self.sou_process.append(1)
 
     def return_result(self,nickname,word):
         rest = []

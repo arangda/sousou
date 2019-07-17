@@ -1,3 +1,4 @@
+import asyncio
 import sys
 import os
 from werkzeug.utils import secure_filename
@@ -202,6 +203,10 @@ def souall():
     from .spider.SouSpider import HandleSou
     spider = HandleSou()
     soudata = spider.return_result(g.user.nickname,None)
-
     return jsonify(soudata)
+
+
+
+
+
 
