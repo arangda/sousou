@@ -3,6 +3,7 @@ import json
 from multiprocessing import Pool  #引入多进程
 
 import aiohttp
+import pandas as pd
 import requests
 import re
 import time
@@ -37,6 +38,7 @@ class HandleSou(object):
     def handle_word_sou(self,content):
         sou_list = []
         soup = BeautifulSoup(content, 'html.parser')
+        sou_list.append(soup.title.string[:-4])
         res = soup.find_all(class_="ec-tuiguang-color-change")
         n = 1
         for i in res:
@@ -46,7 +48,7 @@ class HandleSou(object):
         return sou_list
     async def handle_fetch(self,session,word):
         url = "http://m.baidu.com/s?word=" + word
-        async with session.get(url,ssl=False) as response:
+        async with session.get(url, ssl=False) as response:
             return await response.text()
         '''
         这是requests爬取
@@ -87,7 +89,6 @@ class HandleSou(object):
 
     def return_result(self,nickname,word):
         rest = []
-        tb = time.time()
         if word is None:
             words = self.handle_words(nickname)
         else:
@@ -97,10 +98,20 @@ class HandleSou(object):
         asyncio.set_event_loop(new_loop)
         loop = asyncio.get_event_loop()
         htmls = loop.run_until_complete(self.main(words))
+        loop.close()
         for hm in htmls:
             gt = self.handle_word_sou(hm)
             rest.append(gt)
-        te = time.time()
-        rest.append(str(te-tb))
+        df = pd.DataFrame(rest, columns=['c0', 'c1', 'c2', 'c3', 'c4'])
+        sts = []
+        sts[0] = df.groupby(['c1']).size().sort_values(ascending=False)
+        sts[1] = df.groupby(['c2']).size().sort_values(ascending=False)
+        sts[2] = df.groupby(['c3']).size().sort_values(ascending=False)
+        sts[3] = df.groupby(['c4']).size().sort_values(ascending=False)
+        sts_list = []
+        for st in sts:
+            for i, v in st.items():
+                sts_list.append(i+'___'+str(v))
+        rest.append(sts_list)
         return rest
 

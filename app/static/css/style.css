@@ -4,3 +4,7 @@
 tr td{padding:0 10px;}
 
 .uptable{margin-top:20px;margin-left:20px;}
+.showcon ul{float:left;height:226px;}
+.showcon ul li{width:180px;overflow:hidden;}
+.showcon .header{background:#d9edf7;color:#31708f;}
+.num_con{font-size:18px;color:#1d36cb;padding:50px;}
