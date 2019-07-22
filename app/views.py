@@ -3,7 +3,7 @@ import sys
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from time import time
+import time
 from flask import render_template, flash, redirect, g, url_for, session, request, jsonify
 from flask_login import login_user, current_user, login_required, logout_user
 
@@ -11,7 +11,7 @@ from app import app, lm, oid, db
 from app.forms import LoginForm, EditForm, PostForm,SouForm
 from app.models import User, Post
 from config import POSTS_PER_PAGE, ALLOWED_EXTENSIONS, UPLOAD_FOLDER
-
+from .file import file
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
@@ -48,34 +48,61 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
 @app.route('/user/<nickname>', methods=['GET', 'POST'])
 @app.route('/user/<nickname>/<int:page>', methods=['GET', 'POST'])
 @login_required
 def user(nickname):
+    f = file()
+    # 下面列表和uploads中的子目录，及上传表单name值相关
+    dirs = ['file']
+    dt = f.walk(dirs)
     user = User.query.filter_by(nickname=nickname).first()
     if user == None:
         flash('User '+nickname + ' not found')
         return redirect(url_for('index'))
     if request.method == 'POST':
-        file = request.files['file']
-        if file and allowed_file(file.filename):
-            filename = user.nickname+'.'+file.filename.rsplit('.', 1)[1]
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('user',nickname=nickname, filename=filename))
-    oldfile = UPLOAD_FOLDER + user.nickname + '.xlsx'
-    import pandas as pd
-    xlsx = pd.ExcelFile(oldfile)
-    df = pd.read_excel(xlsx, 'Sheet1')
+        f.upload(dirs)
+        return redirect(url_for('user', nickname=nickname))
+    #oldfile = UPLOAD_FOLDER + user.nickname + '.xlsx'
+    #import pandas as pd
+    #xlsx = pd.ExcelFile(oldfile)
+    #df = pd.read_excel(xlsx, 'Sheet1')
     return render_template('user.html',
                            user=user,
-                           now=int(time()),
-                           tables=[df.to_html(classes='data')],
-                           titles=df.columns.values
+                           now=int(time.time()),
+                           #tables=[df.to_html(classes='data')],
+                           #titles=df.columns.values,
+                           dt=dt
                            )
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
+@app.route('/data/<nickname>', methods=['GET', 'POST'])
+@login_required
+def data(nickname):
+    f = file()
+    # 下面列表和uploads中的子目录，及上传表单name值相关
+    dirs = ['swt', 'baidu', 'sogou', 'shenma', '360']
+    dt = f.walk(dirs)
+    user = User.query.filter_by(nickname=nickname).first()
+    if user == None:
+        flash('User '+nickname + ' not found')
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        f.upload(dirs)
+        return redirect(url_for('data', nickname=nickname))
+    oldfile = UPLOAD_FOLDER + user.nickname + '.xlsx'
+    import pandas as pd
+    #xlsx = pd.ExcelFile(oldfile)
+    #df = pd.read_excel(xlsx, 'Sheet1')
+    return render_template('data.html',
+                           user=user,
+                           now=int(time.time()),
+                           dt=dt
+                           )
 @app.route('/edit', methods=['GET','POST'])
 @login_required
 def edit():
@@ -193,7 +220,7 @@ def sousou():
                            title='Home',
                            form=form,
                            souo=soudata,
-                           now=int(time())
+                           now=int(time.time())
                            )
 
 @app.route('/souall', methods=['GET','POST'])

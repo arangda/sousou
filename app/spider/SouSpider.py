@@ -103,15 +103,13 @@ class HandleSou(object):
             gt = self.handle_word_sou(hm)
             rest.append(gt)
         df = pd.DataFrame(rest, columns=['c0', 'c1', 'c2', 'c3', 'c4'])
-        sts = []
-        sts[0] = df.groupby(['c1']).size().sort_values(ascending=False)
-        sts[1] = df.groupby(['c2']).size().sort_values(ascending=False)
-        sts[2] = df.groupby(['c3']).size().sort_values(ascending=False)
-        sts[3] = df.groupby(['c4']).size().sort_values(ascending=False)
+        sts = [df.groupby([c]).size().sort_values(ascending=False) for c in ['c1', 'c2', 'c3', 'c4']]
         sts_list = []
         for st in sts:
             for i, v in st.items():
                 sts_list.append(i+'___'+str(v))
-        rest.append(sts_list)
-        return rest
+        last_ret = []
+        last_ret.append(sts_list)
+        last_ret.append(rest)
+        return last_ret
 

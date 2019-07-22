@@ -6,7 +6,7 @@ $(document).ready(function(){
             clearInterval(t1)
             console.log(data)
             var html_con = ''
-            data.forEach(function(value,i){
+            data[1].forEach(function(value,i){
                 html_con += '<ul class="list-group">'
                 value.forEach(function(val,n){
                     if(n==0){
@@ -18,6 +18,13 @@ $(document).ready(function(){
                 html_con += '</ul>'
             })
             $("#show").html(html_con)
+
+            html_sts += '<ul class="list-group">'
+            data[0].forEach(function(value,i){
+                        html_sts += '<li class="list-group-item header">'+value+'</li>'
+            })
+            html_sts += '</ul>'
+            $("#sts").html(html_sts)
         })
         var num = 0
         var t1 = self.setInterval(function(){
