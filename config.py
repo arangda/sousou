@@ -29,4 +29,4 @@ POSTS_PER_PAGE = 3
 
 #上传xls设置
 UPLOAD_FOLDER = os.path.join(basedir, 'uploads/')
-ALLOWED_EXTENSIONS = set(['xls', 'xlsx'])
+ALLOWED_EXTENSIONS = set(['xls', 'xlsx', 'csv'])

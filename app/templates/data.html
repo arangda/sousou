@@ -13,6 +13,33 @@
             </p>
         </div>
         <div class="form-group">
+            <label for="sogou">搜狗数据上传</label>
+            <input class="form-control" type=file id="sogou" name="sogou">
+            <p class="help-block">
+            {% for fn in dt['sogou'] %}
+                <span>{{fn}}</span>
+            {% endfor %}
+            </p>
+        </div>
+        <div class="form-group">
+            <label for="shenma">神马数据上传</label>
+            <input class="form-control" type=file id="shenma" name="shenma">
+            <p class="help-block">
+            {% for fn in dt['shenma'] %}
+                <span>{{fn}}</span>
+            {% endfor %}
+            </p>
+        </div>
+        <div class="form-group">
+            <label for="360">360数据上传</label>
+            <input class="form-control" type=file id="360" name="360">
+            <p class="help-block">
+            {% for fn in dt['360'] %}
+                <span>{{fn}}</span>
+            {% endfor %}
+            </p>
+        </div>
+        <div class="form-group">
             <label for="swt">商务通数据上传</label>
             <input class="form-control" type=file id="swt" name="swt">
             <p class="help-block">
